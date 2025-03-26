@@ -1,32 +1,34 @@
 <?php
 session_start();
 
-
-$_SESSION['saldo'] = 1000000;
-
+if (!isset($_SESSION['saldo'])) {
+    $_SESSION['saldo'] = 1000000;
+}
 
 if(isset($_POST['submit'])){
-    $kodeTransaksi = $_POST['kode'];
-    $jumlahUang = $_POST['jumlah'];
-    
-    if($kodeTransaksi == 0){ // Setor Tunai
-        $_SESSION['saldo'] += $jumlahUang;
-        echo "<script>alert('Transaksi Berhasil : Saldo Anda Sekarang Rp. " . number_format($_SESSION['saldo'], 0, ',', '.') . "')</script>";
-    } else if($kodeTransaksi == 1){ // Tarik Tunai
-        if($_SESSION['saldo'] - $jumlahUang >= 5000){ // Sisa saldo minimal 5000
-            $_SESSION['saldo'] -= $jumlahUang;
-            echo "<script>alert('Tarik Tunai Berhasil : Saldo Anda Sekarang Rp. " . number_format($_SESSION['saldo'], 0, ',', '.') . "')</script>";
-        } else if($jumlahUang > $_SESSION['saldo']){
-            echo "<script>alert('Transaksi Gagal : Saldo Anda Tidak Cukup')</script>";
-        } else{
-            echo "<script>alert('Transaksi Gagal : Sisa Saldo Minimal 5000')</script>";
+    if(isset($_POST['kode']) && isset($_POST['jumlah'])) {
+        $kodeTransaksi = $_POST['kode'];
+        $jumlahUang = $_POST['jumlah'];
+
+        if ($kodeTransaksi == 0) { // Setor Tunai
+            $_SESSION['saldo'] += $jumlahUang;
+            echo "<script>alert('Setor Tunai Berhasil! Saldo Anda Sekarang Rp. " . number_format($_SESSION['saldo'], 0, ',', '.') . "')</script>";
+        } elseif ($kodeTransaksi == 1) { // Tarik Tunai
+            if ($jumlahUang > $_SESSION['saldo']) {
+                echo "<script>alert('Transaksi Gagal: Saldo Anda Tidak Cukup')</script>";
+            } elseif ($_SESSION['saldo'] - $jumlahUang < 5000) {
+                echo "<script>alert('Transaksi Gagal: Sisa Saldo Minimal Rp. 5000')</script>";
+            } else {
+                $_SESSION['saldo'] -= $jumlahUang;
+                echo "<script>alert('Tarik Tunai Berhasil! Saldo Anda Sekarang Rp. " . number_format($_SESSION['saldo'], 0, ',', '.') . "')</script>";
+            }
+        } else {
+            echo "<script>alert('Transaksi Gagal: Kode Transaksi Salah')</script>";
         }
-    } else{
-        echo "<script>alert('Transaksi Gagal : Kode Transaksi Salah')</script>";
     }
 }
-$Saldo = $_SESSION['saldo'];
 
+$Saldo = $_SESSION['saldo'];
 ?>
 
 <!DOCTYPE html>
@@ -60,6 +62,7 @@ $Saldo = $_SESSION['saldo'];
             color: white;
             border: none;
             border-radius: 5px;
+            cursor: pointer;
         }
         button:hover{
             background-color:rgb(67, 41, 133, 0.8);
@@ -78,23 +81,22 @@ $Saldo = $_SESSION['saldo'];
 </head>
 <body>
     <div class="card-container">
-    <h3>Transaksi Bank</h3>
-    <form method="post">
-        <label>Kode Bank :</label>
-        <input type="number" name="kode" required> 0 = Setor, 1 = Tarik
-        <br><br>
+        <h3>Transaksi Bank</h3>
+        <form method="post">
+            <label>Kode Bank :</label>
+            <input type="number" name="kode" required min="0" max="1"> 0 = Setor, 1 = Tarik
+            <br><br>
 
-        <label>Jumlah Uang :</label>
-        <input type="number" name="jumlah" required>
-        <br><br>
+            <label>Jumlah Uang :</label>
+            <input type="number" name="jumlah" required min="1">
+            <br><br>
 
-        <label>Saldo Anda :</label>
-        <input type="text" name="saldo" value="Rp. <?=number_format($Saldo, 0, ',', '.') ?>" readonly>
-        <br><br>
+            <label>Saldo Anda :</label>
+            <input type="text" name="saldo" value="Rp. <?= number_format($Saldo, 0, ',', '.') ?>" readonly>
+            <br><br>
 
-        <button type="submit" name="submit">Proses</button>
-    </form>
+            <button type="submit" name="submit">Proses</button>
+        </form>
     </div>
-    
 </body>
 </html>
